@@ -1,2 +1,4 @@
 .vscode
 __pycache__/
+lambda_env/
+venv/

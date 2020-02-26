@@ -1,6 +1,9 @@
 import os
+import io
 import logging
 import boto3
+from botocore.exceptions import ClientError
+import json
 
 # carregar client S3
 s3_client = boto3.client('s3')
@@ -32,19 +35,34 @@ def main(event, context):
         s3_bucket = payload['bucket']
         s3_path = os.path.join(payload['path'], payload['object'])
 
+        print("BUCKET S3: " , s3_bucket)
+        print("PATH S3: " , s3_path)
+        
         # tenta acessar um objeto S3
+        contents = None
         try:
             s3_response = s3_client.get_object(Bucket=s3_bucket, Key=s3_path.lower())
+            print('SUCCESS!')
 
             # lê conteudo do objeto
-            contents = s3_response['Body'].read()
+            # bytes_buffer = io.BytesIO()
+            # s3_client.download_fileobj(Bucket=s3_bucket, Key=s3_path.lower(), Fileobj=bytes_buffer)
+            # byte_value = bytes_buffer.getvalue()
+            # contents = byte_value.decode() #python3, default decoding is utf-8
+
+            # # contents = json.loads(s3_response['Body'].read())
+            # print('content... ')
+            # print(contents)
+
+            dict_result = {"status":"200", "message":s3_response, "error": None}
 
             # guarda resultado bem sucedido
-            result.append({"status":"200", "message":s3_response, "error": None, "contents": contents})
-        except Exception as e:
+            result.append(dict(dict_result))
+        except ClientError as e:
             print('FAILURE...')
             # logging.error(e)
             # guarda resultado com erros
-            result.append({"status":"600", "message":None, "error": e})
+            # dict_result = {"status":"600", "message":None, "error": e}
+            # result.append(dict_result)
 
     return result
